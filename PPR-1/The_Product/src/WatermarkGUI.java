@@ -19,6 +19,8 @@ import javax.swing.SwingUtilities;
 
 
 
+
+
 public class WatermarkGUI extends JFrame {
 
     private BufferedImage loadedImage;
