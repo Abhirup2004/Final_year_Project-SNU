@@ -14,7 +14,12 @@ public class WatermarkGUI extends JFrame {
     public WatermarkGUI() {
         setTitle("Java Digital Watermarking (BMP Only)");
         setSize(800, 600);
-        setDefaultCloseOperation(EXIT_ON_CLOSE);
+        setDefaultCloseOperation(EXIT_ON_CLOSE)
+        
+        
+        
+        
+        ;
         setLayout(new BorderLayout());
 
         imageLabel = new JLabel("No Image Loaded", JLabel.CENTER);
