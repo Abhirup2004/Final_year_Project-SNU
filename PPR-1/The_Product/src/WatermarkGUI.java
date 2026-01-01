@@ -1,8 +1,21 @@
-import javax.imageio.ImageIO;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.image.BufferedImage;
 import java.io.File;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 
 public class WatermarkGUI extends JFrame {
 
@@ -15,6 +28,7 @@ public class WatermarkGUI extends JFrame {
         setTitle("Java Digital Watermarking (BMP Only)");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE)
+        
         
         
         
