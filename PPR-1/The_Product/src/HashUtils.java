@@ -28,6 +28,9 @@ public class HashUtils {
                     crc <<= 1;
                 }
                 crc &= 0xFF;
+
+
+                
             }
         }
         return crc;
