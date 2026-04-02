@@ -19,7 +19,6 @@ public class DWM2 extends JFrame {
     private JLabel imageLabel, statusLabel, timestampLabel;
     private BufferedImage originalImage, watermarkedImage;
     private File currentImageFile;
-    private File currentAudioFile;
 
     public DWM2() {
         initializeGUI();
@@ -41,7 +40,7 @@ public class DWM2 extends JFrame {
         add(rightPanel, BorderLayout.EAST);
         add(bottomPanel, BorderLayout.SOUTH);
 
-        setSize(1200,700);
+        pack();
         setLocationRelativeTo(null);
         setResizable(true);
     }
@@ -85,7 +84,7 @@ public class DWM2 extends JFrame {
         panel.add(timestampLabel, gbc);
 
         // Update timestamp every second
-        Timer timer = new Timer(1000, e -> timestampLabel.setText(getCurrentTimestamp()));
+        Timer timer = new Timer(1000, _ -> timestampLabel.setText(getCurrentTimestamp()));
         timer.start();
 
         return panel;
@@ -113,85 +112,40 @@ public class DWM2 extends JFrame {
         logArea = new JTextArea(25, 40);
         logArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         logArea.setEditable(false);
-
-        logArea.setBackground(Color.BLACK);
-        logArea.setForeground(Color.GREEN);
-        logArea.setCaretColor(Color.GREEN);
-
         JScrollPane scrollPane = new JScrollPane(logArea);
         panel.add(scrollPane, BorderLayout.CENTER);
 
         JButton clearLogButton = new JButton("Clear Log");
-        clearLogButton.addActionListener(e -> logArea.setText(""));
+        clearLogButton.addActionListener(_ -> logArea.setText(""));
         panel.add(clearLogButton, BorderLayout.SOUTH);
 
         return panel;
     }
 
     private JPanel createButtonPanel() {
+        JPanel panel = new JPanel(new FlowLayout());
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new GridLayout(2,1,5,5));
-
-        // IMAGE BUTTONS
-        JPanel imagePanel = new JPanel(new FlowLayout());
-
-        loadImageButton = new JButton("Load Image");
-        embedButton = new JButton("Embed Watermark");
-        extractButton = new JButton("Extract Watermark");
-        saveImageButton = new JButton("Save Image");
-
+        loadImageButton = new JButton("Load 256x256 BMP Image");
         loadImageButton.addActionListener(this::loadImage);
-        embedButton.addActionListener(this::embedWatermark);
-        extractButton.addActionListener(this::extractWatermark);
-        saveImageButton.addActionListener(this::saveImage);
 
+        embedButton = new JButton("Embed Watermark");
+        embedButton.addActionListener(this::embedWatermark);
         embedButton.setEnabled(false);
+
+        extractButton = new JButton("Extract & Verify Watermark");
+        extractButton.addActionListener(this::extractWatermark);
         extractButton.setEnabled(false);
+
+        saveImageButton = new JButton("Save Watermarked Image");
+        saveImageButton.addActionListener(this::saveImage);
         saveImageButton.setEnabled(false);
 
-        loadImageButton.setBackground(new Color(0,120,215));
-        embedButton.setBackground(new Color(0,153,51));
-        extractButton.setBackground(new Color(255,140,0));
-        saveImageButton.setBackground(new Color(150,0,200));
+        panel.add(loadImageButton);
+        panel.add(embedButton);
+        panel.add(extractButton);
+        panel.add(saveImageButton);
 
-        loadImageButton.setForeground(Color.WHITE);
-        embedButton.setForeground(Color.WHITE);
-        extractButton.setForeground(Color.WHITE);
-        saveImageButton.setForeground(Color.WHITE);
-
-        imagePanel.add(loadImageButton);
-        imagePanel.add(embedButton);
-        imagePanel.add(extractButton);
-        imagePanel.add(saveImageButton);
-
-        // AUDIO BUTTONS
-        JPanel audioPanel = new JPanel(new FlowLayout());
-
-        JButton loadAudioButton = new JButton("Load Audio");
-        JButton embedAudioButton = new JButton("Embed Audio");
-        JButton extractAudioButton = new JButton("Extract Audio");
-
-        loadAudioButton.addActionListener(this::loadAudio);
-        embedAudioButton.addActionListener(this::embedAudio);
-        extractAudioButton.addActionListener(this::extractAudio);
-
-        loadAudioButton.setBackground(new Color(0,120,215));
-        embedAudioButton.setBackground(new Color(0,153,51));
-        extractAudioButton.setBackground(new Color(255,140,0));
-
-        loadAudioButton.setForeground(Color.WHITE);
-        embedAudioButton.setForeground(Color.WHITE);
-        extractAudioButton.setForeground(Color.WHITE);
-
-        audioPanel.add(loadAudioButton);
-        audioPanel.add(embedAudioButton);
-        audioPanel.add(extractAudioButton);
-
-        mainPanel.add(imagePanel);
-        mainPanel.add(audioPanel);
-
-        return mainPanel;
+        return panel;
     }
 
     private String getCurrentTimestamp() {
@@ -649,98 +603,13 @@ public class DWM2 extends JFrame {
     }
 
     private void log(String message) {
-    logArea.append(message + "\n");
-    logArea.setCaretPosition(logArea.getDocument().getLength());
-}
-
-/* ================= AUDIO METHODS ================= */
-
-private void loadAudio(ActionEvent e) {
-
-    JFileChooser chooser = new JFileChooser();
-    chooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("WAV Audio", "wav"));
-
-    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-
-        currentAudioFile = chooser.getSelectedFile();
-
-        statusLabel.setText("Audio loaded: " + currentAudioFile.getName());
-
-        log("=== AUDIO FILE LOADED ===");
-        log("File: " + currentAudioFile.getAbsolutePath());
-    }
-}
-
-private void embedAudio(ActionEvent e) {
-
-    try {
-
-        if (currentAudioFile == null) {
-            JOptionPane.showMessageDialog(this, "Please load a WAV file first!");
-            return;
-        }
-
-        String text = watermarkField.getText();
-        String key = new String(passwordField.getPassword());
-
-        File output = new File("watermarked_audio.wav");
-
-        AudioSteganography.hideText(currentAudioFile, output, text, key, this::log);
-
-        log("Audio message embedded successfully.");
-        JOptionPane.showMessageDialog(this, "Audio watermark embedded!");
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error embedding audio message.");
-    }
-}
-
-private void extractAudio(ActionEvent e) {
-
-    try {
-
-        if (currentAudioFile == null) {
-            JOptionPane.showMessageDialog(this, "Please load a WAV file first!");
-            return;
-        }
-
-        String key = new String(passwordField.getPassword());
-
-        String message = AudioSteganography.extractText(currentAudioFile, key, this::log);
-
-        if (message == null) {
-            JOptionPane.showMessageDialog(this, "No hidden message found.");
-            return;
-        }
-
-        log("Extracted audio message: " + message);
-
-        JOptionPane.showMessageDialog(this, "Hidden message: " + message);
-
-    } catch (Exception ex) {
-        ex.printStackTrace();
-        JOptionPane.showMessageDialog(this, "Error extracting audio message.");
-    }
-}
-
-/* ================= MAIN ================= */
-
-public static void main(String[] args) {
-
-    try {
-        for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-            if ("Nimbus".equals(info.getName())) {
-                UIManager.setLookAndFeel(info.getClassName());
-                break;
-            }
-        }
-    } catch (Exception e) {
-        e.printStackTrace();
+        logArea.append(message + "\n");
+        logArea.setCaretPosition(logArea.getDocument().getLength());
     }
 
-    SwingUtilities.invokeLater(() -> {
-        new DWM2().setVisible(true);
-    });
-}
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> {
+            new DWM2().setVisible(true);
+        });
+    }
 }
