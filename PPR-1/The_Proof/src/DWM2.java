@@ -20,6 +20,7 @@ public class DWM2 extends JFrame {
     private BufferedImage originalImage, watermarkedImage;
     private File currentImageFile;
     private File currentAudioFile;
+    private File currentTextFile;
 
     public DWM2() {
         initializeGUI();
@@ -190,6 +191,22 @@ public class DWM2 extends JFrame {
 
         mainPanel.add(imagePanel);
         mainPanel.add(audioPanel);
+        // TEXT PANEL
+JPanel textPanel = new JPanel(new FlowLayout());
+
+JButton loadTextButton = new JButton("Load Text");
+JButton embedTextButton = new JButton("Embed Text");
+JButton extractTextButton = new JButton("Extract Text");
+
+loadTextButton.addActionListener(this::loadText);
+embedTextButton.addActionListener(this::embedText);
+extractTextButton.addActionListener(this::extractText);
+
+textPanel.add(loadTextButton);
+textPanel.add(embedTextButton);
+textPanel.add(extractTextButton);
+
+mainPanel.add(textPanel);
 
         return mainPanel;
     }
@@ -218,17 +235,24 @@ public class DWM2 extends JFrame {
                 }
 
                 // Display image
-                ImageIcon icon = new ImageIcon(originalImage.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
-                imageLabel.setIcon(icon);
-                imageLabel.setText("");
+ImageIcon icon = new ImageIcon(originalImage.getScaledInstance(256, 256, Image.SCALE_SMOOTH));
+imageLabel.setIcon(icon);
+imageLabel.setText("");
 
-                embedButton.setEnabled(true);
-                extractButton.setEnabled(true);
-                statusLabel.setText("Status: Image loaded successfully");
-                log("=== IMAGE LOADED ===");
-                log("File: " + currentImageFile.getName());
-                log("Dimensions: " + originalImage.getWidth() + "x" + originalImage.getHeight());
-                log("");
+// 🔥 FIX TRANSPARENCY / UI GLITCH
+imageLabel.revalidate();
+imageLabel.repaint();
+this.revalidate();
+this.repaint();
+
+embedButton.setEnabled(true);
+extractButton.setEnabled(true);
+statusLabel.setText("Status: Image loaded successfully");
+
+log("=== IMAGE LOADED ===");
+log("File: " + currentImageFile.getName());
+log("Dimensions: " + originalImage.getWidth() + "x" + originalImage.getHeight());
+log("");
 
             } catch (IOException ex) {
                 JOptionPane.showMessageDialog(this, "Error loading image: " + ex.getMessage(),
@@ -721,6 +745,75 @@ private void extractAudio(ActionEvent e) {
     } catch (Exception ex) {
         ex.printStackTrace();
         JOptionPane.showMessageDialog(this, "Error extracting audio message.");
+    }
+}
+/* ================= TEXT METHODS ================= */
+
+private void loadText(ActionEvent e) {
+
+    JFileChooser chooser = new JFileChooser();
+
+    if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+
+        currentTextFile = chooser.getSelectedFile();
+
+        statusLabel.setText("Text loaded: " + currentTextFile.getName());
+
+        log("=== TEXT FILE LOADED ===");
+        log("File: " + currentTextFile.getAbsolutePath());
+    }
+}
+
+private void embedText(ActionEvent e) {
+
+    try {
+
+        if (currentTextFile == null) {
+            JOptionPane.showMessageDialog(this, "Load a text file first!");
+            return;
+        }
+
+        String text = watermarkField.getText();
+        String key = new String(passwordField.getPassword());
+
+        File output = new File("stego_text.txt");
+
+        TextSteganography.hideText(currentTextFile, output, text, key, this::log);
+
+        log("Text watermark embedded successfully.");
+        JOptionPane.showMessageDialog(this, "Text watermark embedded!");
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error embedding text.");
+    }
+}
+
+private void extractText(ActionEvent e) {
+
+    try {
+
+        if (currentTextFile == null) {
+            JOptionPane.showMessageDialog(this, "Load a text file first!");
+            return;
+        }
+
+        String key = new String(passwordField.getPassword());
+
+        String message = TextSteganography.extractText(currentTextFile, key, this::log);
+
+        if (message == null) {
+            JOptionPane.showMessageDialog(this, "No hidden message found.");
+            return;
+        }
+
+        log("Extracted text message: " + message);
+
+        JOptionPane.showMessageDialog(this, "Hidden message: " + message);
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Error extracting text.");
     }
 }
 
